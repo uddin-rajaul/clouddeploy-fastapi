@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:18
+    container_name: clouddeploy-postgres
+    environment:
+      POSTGRES_DB: clouddeploy
+      POSTGRES_USER: clouddeploy_app
+      POSTGRES_PASSWORD: clouddeploy1234
+    ports:
+      - "5432:5432"
+    volumes:
+      - clouddeploy_postgres_data:/var/lib/postgresql
+  
+volumes:
+    clouddeploy_postgres_data:
