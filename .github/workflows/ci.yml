@@ -53,6 +53,11 @@ jobs:
             
             - name: Lint code
               run: uv run ruff check .
+
+            - name: Apply migrations
+              env:
+                DATABASE_URL: postgresql+psycopg://clouddeploy_app:clouddeploy1234@localhost:5432/clouddeploy_test
+              run: uv run alembic upgrade head
             
             - name: Check migrations
               env:
