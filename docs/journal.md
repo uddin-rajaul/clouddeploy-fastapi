@@ -321,3 +321,169 @@ Verified:
 - `nc` verified TCP connectivity, while `psql` verified actual PostgreSQL authentication.
 - RDS provides a managed PostgreSQL server; EC2 only needs the PostgreSQL client when direct database administration or testing is required.
 - Keep the architecture simple: no NAT Gateway, RDS Proxy, read replicas, Multi-AZ deployment, or other unnecessary infrastructure for this learning project.
+
+
+---
+
+## 2026-08-10 — Employee Management Application & Local PostgreSQL
+
+### Application Structure
+
+Expanded the FastAPI application from a basic health-check API into a simple Employee Management API.
+
+Added:
+
+* `app/database.py`
+* `app/models/`
+* `app/schemas/`
+* `app/routers/`
+
+The application now separates:
+
+* Database configuration and sessions
+* SQLAlchemy database models
+* Pydantic API schemas
+* API route handlers
+
+This keeps the project organized without introducing unnecessary application architecture.
+
+### Employee Model
+
+Created an `Employee` SQLAlchemy model with:
+
+* `id`
+* `name`
+* `email`
+* `department`
+* `job_title`
+* `is_active`
+* `created_at`
+
+The application model is responsible for defining the database structure.
+
+The database table itself is created through an Alembic migration rather than manually creating tables in PostgreSQL.
+
+### Employee API
+
+Added CRUD endpoints:
+
+* `POST /employees`
+* `GET /employees`
+* `GET /employees/{employee_id}`
+* `PUT /employees/{employee_id}`
+* `DELETE /employees/{employee_id}`
+
+The existing:
+
+* `GET /`
+* `GET /health`
+
+endpoints remain available.
+
+Verified all employee CRUD endpoints successfully through the FastAPI Swagger documentation.
+
+### Database Configuration
+
+Added environment-based database configuration using `pydantic-settings`.
+
+The application reads:
+
+`DATABASE_URL`
+
+from the environment rather than hardcoding database credentials into the application.
+
+`.env` is used for local development and `.env.example` provides a safe configuration template.
+
+### Local PostgreSQL
+
+Because the production RDS instance is private, a local PostgreSQL Docker container was introduced for development.
+
+Created:
+
+`docker-compose.yml`
+
+The container provides:
+
+* PostgreSQL 18
+* Database: `clouddeploy`
+* Application user: `clouddeploy_app`
+* Local port: `5432`
+
+FastAPI and SQLAlchemy were successfully connected to the local PostgreSQL instance.
+
+### Alembic
+
+Added Alembic for database schema migrations.
+
+Configured Alembic to use the application's database configuration and SQLAlchemy metadata.
+
+Generated the first migration for the Employee model.
+
+Applied the migration successfully to the local PostgreSQL database.
+
+The resulting database contains:
+
+* `alembic_version`
+* `employees`
+
+The `employees` table is owned by:
+
+`clouddeploy_app`
+
+### Database Verification
+
+Verified the application database connection through SQLAlchemy.
+
+Verified the current database:
+
+`clouddeploy`
+
+Verified the PostgreSQL migration created the expected `employees` table.
+
+### Development Architecture
+
+The local development flow is now:
+
+```
+FastAPI
+    |
+    | SQLAlchemy
+    v
+Docker PostgreSQL
+    |
+    v
+clouddeploy database
+    |
+    v
+employees table
+```
+
+Production remains:
+
+```
+Internet
+    |
+    v
+Nginx
+    |
+    v
+FastAPI on EC2
+    |
+    | PostgreSQL :5432
+    v
+Private RDS PostgreSQL
+```
+
+Docker is being used only to provide a local PostgreSQL development environment. The production deployment remains based on EC2, systemd, Nginx, and RDS.
+
+### Lessons
+
+* Application database tables should be managed through application migrations rather than manually created in PostgreSQL.
+* Alembic provides a versioned history of database schema changes.
+* Local development does not require direct access to the private production RDS instance.
+* Docker can provide a disposable local PostgreSQL environment without requiring the production application itself to run in containers.
+* Environment variables allow the same application code to use different database environments.
+* Pydantic schemas define the API contract while SQLAlchemy models represent the database structure.
+* Verify the database connection independently before troubleshooting the application layer.
+* Keep the development and production architecture conceptually consistent while allowing their infrastructure to differ.
+
