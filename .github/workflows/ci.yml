@@ -17,6 +17,11 @@ jobs:
         name: Run tests
         runs-on: ubuntu-latest
 
+        env:
+            TEST_DATABASE_URL: postgresql+psycopg://clouddeploy_app:clouddeploy1234@localhost:5432/clouddeploy_test
+            DATABASE_URL: postgresql+psycopg://clouddeploy_app:clouddeploy1234@localhost:5432/clouddeploy_test
+
+
         services:
             postgres:
                 image: postgres:18
@@ -55,17 +60,11 @@ jobs:
               run: uv run ruff check .
 
             - name: Apply migrations
-              env:
-                DATABASE_URL: postgresql+psycopg://clouddeploy_app:clouddeploy1234@localhost:5432/clouddeploy_test
               run: uv run alembic upgrade head
             
             - name: Check migrations
-              env:
-                DATABASE_URL: postgresql+psycopg://clouddeploy_app:clouddeploy1234@localhost:5432/clouddeploy_test
               run: uv run alembic check
 
             - name: Run tests
-              env:
-                DATABASE_URL: postgresql+psycopg://clouddeploy_app:clouddeploy1234@localhost:5432/clouddeploy_test
               run: uv run pytest
             
