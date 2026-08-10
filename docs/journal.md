@@ -487,3 +487,313 @@ Docker is being used only to provide a local PostgreSQL development environment.
 * Verify the database connection independently before troubleshooting the application layer.
 * Keep the development and production architecture conceptually consistent while allowing their infrastructure to differ.
 
+## 2026-08-10 — Employee Management API, PostgreSQL Integration & Testing
+
+### Application Expansion
+
+Expanded the original FastAPI application into a simple Employee Management System.
+
+Implemented an `Employee` SQLAlchemy model with:
+
+* `id`
+* `name`
+* `email`
+* `department`
+* `job_title`
+* `is_active`
+* `created_at`
+* `updated_at`
+
+Added Pydantic schemas for:
+
+* Employee creation
+* Employee updates
+* Employee responses
+
+Added CRUD API endpoints:
+
+```text
+POST   /employees
+GET    /employees
+GET    /employees/{employee_id}
+PUT    /employees/{employee_id}
+DELETE /employees/{employee_id}
+```
+
+The endpoints were manually tested and verified to work.
+
+### PostgreSQL Application Integration
+
+Connected the FastAPI application to PostgreSQL using:
+
+* SQLAlchemy
+* psycopg
+* Pydantic Settings
+
+The database connection is configured through `DATABASE_URL` rather than being hard-coded into the application.
+
+The application obtains database sessions through a FastAPI dependency.
+
+Application tables are not created manually with PostgreSQL commands.
+
+The SQLAlchemy models define the application schema, while Alembic is responsible for creating and changing database tables.
+
+### Local PostgreSQL Development Environment
+
+Added Docker Compose configuration for local PostgreSQL development.
+
+Container:
+
+```text
+clouddeploy-postgres
+```
+
+Database:
+
+```text
+clouddeploy
+```
+
+Application database user:
+
+```text
+clouddeploy_app
+```
+
+PostgreSQL is exposed locally on port `5432`.
+
+A separate database named `clouddeploy_test` was also created for automated tests.
+
+This provides a clear separation between:
+
+```text
+Development database
+        |
+        +-- clouddeploy
+
+Test database
+        |
+        +-- clouddeploy_test
+```
+
+The Docker PostgreSQL database is for local development/testing and is separate from the AWS RDS PostgreSQL instance.
+
+### Alembic
+
+Added Alembic for database schema migrations.
+
+Created the initial migration:
+
+```text
+aa3014adda69_create_employees_table.py
+```
+
+The migration creates the `employees` table.
+
+Verified the migration against a fresh test database using:
+
+```text
+DATABASE_URL="postgresql+psycopg://clouddeploy_app:...@localhost:5432/clouddeploy_test"
+uv run alembic upgrade head
+```
+
+Verified that the fresh database contains:
+
+```text
+alembic_version
+employees
+```
+
+Also verified:
+
+```text
+uv run alembic current
+```
+
+reports:
+
+```text
+aa3014adda69 (head)
+```
+
+Used:
+
+```text
+uv run alembic check
+```
+
+to verify that the database schema matches the SQLAlchemy metadata and that no new migration operations are required.
+
+### Alembic Configuration Issue
+
+Initially, Alembic was using the generated `sqlalchemy.url` configuration from `alembic.ini`.
+
+This was not appropriate because the actual database connection is provided through the application's `DATABASE_URL` settings.
+
+Updated `alembic/env.py` so online migrations use the application's configured database URL.
+
+Also ensured that the application's model metadata is available to Alembic for autogeneration.
+
+Unused imports were removed after Ruff identified them.
+
+### Automated Testing
+
+Added pytest-based API tests.
+
+The tests use a separate PostgreSQL database:
+
+```text
+clouddeploy_test
+```
+
+FastAPI's database dependency is overridden during testing so the application uses the test database rather than the normal development database.
+
+The test database is cleaned before each test.
+
+Verified:
+
+```text
+TEST_DATABASE_URL="postgresql+psycopg://clouddeploy_app:...@localhost:5432/clouddeploy_test" uv run pytest
+```
+
+Result:
+
+```text
+1 passed
+```
+
+A test successfully created an employee and verified the API response.
+
+The database was also directly inspected with PostgreSQL to confirm that API operations were actually persisted.
+
+### Timestamp Correction
+
+The Employee model initially used `datetime.utcnow()`.
+
+Python 3.14 reported this as deprecated.
+
+Changed the timestamp defaults to timezone-aware UTC using:
+
+```text
+datetime.now(UTC)
+```
+
+This was a Python-side default change only.
+
+No Alembic migration was required because the PostgreSQL column definitions did not change.
+
+### Ruff
+
+Ruff was introduced as the project's linting and formatting tool.
+
+Used:
+
+```text
+uv run ruff format .
+uv run ruff format --check .
+uv run ruff check .
+```
+
+Initial Ruff checks identified formatting issues, import ordering, unused imports, and outdated typing patterns.
+
+These issues were corrected.
+
+Final validation:
+
+```text
+13 files already formatted
+```
+
+and:
+
+```text
+All checks passed!
+```
+
+Ruff is now part of the project's development quality checks.
+
+### Current Validation
+
+The following checks are currently passing:
+
+```text
+uv run ruff format --check .
+uv run ruff check .
+uv run pytest
+uv run alembic check
+```
+
+The test suite currently reports:
+
+```text
+1 passed
+```
+
+The migration has also been verified against a fresh test database.
+
+### Current Application Architecture
+
+The application layer is now:
+
+```text
+FastAPI
+   |
+   +-- Employee Router
+   |
+   +-- Pydantic Schemas
+   |
+   +-- SQLAlchemy Models
+   |
+   +-- Database Session
+   |
+   v
+PostgreSQL
+```
+
+The development environment uses Docker PostgreSQL, while the AWS deployment uses RDS PostgreSQL.
+
+### Lessons
+
+* Keep application schema creation under migration management rather than manually creating tables.
+* Test migrations against a fresh database, not only against an existing database.
+* Keep the development and test databases separate.
+* Network connectivity, database authentication, migration correctness, and application behavior should be tested as separate concerns.
+* Automated tests should use a dedicated database so application tests cannot accidentally modify development data.
+* Linting and formatting should be part of the development workflow rather than something added immediately before deployment.
+* A small but real CRUD application is sufficient to validate the database, migration, testing, and deployment workflow without unnecessarily expanding the product.
+
+### Next Phase
+
+The application and database foundation are now complete enough to begin deployment automation.
+
+The next phase is:
+
+```text
+GitHub
+   |
+   v
+GitHub Actions
+   |
+   +-- lint
+   +-- test
+   +-- migration check
+   |
+   v
+EC2
+   |
+   +-- pull application
+   +-- install/sync dependencies
+   +-- run Alembic migrations
+   +-- restart systemd service
+   |
+   v
+Nginx
+   |
+   v
+FastAPI
+   |
+   v
+RDS PostgreSQL
+```
+
+The immediate next milestone is to commit and push the completed application/database/testing work, then build the GitHub Actions CI/CD workflow.
