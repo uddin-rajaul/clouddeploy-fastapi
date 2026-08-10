@@ -57,11 +57,10 @@ jobs:
             - name: Check migrations
               env:
                 DATABASE_URL: postgresql+asyncpg://clouddeploy_app:clouddeploy1234@localhost:5432/clouddeploy_test
-              run: uv run alembic check-migrations
+              run: uv run alembic check
 
             - name: Run tests
               env:
                 DATABASE_URL: postgresql+asyncpg://clouddeploy_app:clouddeploy1234@localhost:5432/clouddeploy_test
               run: uv run pytest
             
-              
