@@ -1,0 +1,67 @@
+name: CI
+
+on:
+    push:
+        branches:
+            - main
+    pull_request:
+        branches:
+            - main
+
+
+permissions:
+    contents: read
+
+jobs:
+    test:
+        name: Run tests
+        runs-on: ubuntu-latest
+
+        services:
+            postgres:
+                image: postgres:18
+                env:
+                    POSTGRES_DB: clouddeploy_test
+                    POSTGRES_USER: clouddeploy_app
+                    POSTGRES_PASSWORD: clouddeploy1234
+                ports:
+                    - 5432:5432
+                options: >-
+                    --health-cmd="pg_isready -U clouddeploy_app -d clouddeploy_test"
+                    --health-interval=10s
+                    --health-timeout=5s
+                    --health-retries=5
+            
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+            
+            - name: Set up uv 
+              uses: astral-sh/setup-uv@v6
+              with:
+                version: "latest"
+                enable-cache: true
+            
+            - name: Set up Python
+              run: uv python install 3.14
+            
+            - name: Install dependencies
+              run: uv sync --locked
+            
+            - name: Check formatting
+              run: uv run ruff format --check .
+            
+            - name: Lint code
+              run: uv run ruff check .
+            
+            - name: Check migrations
+              env:
+                DATABASE_URL: postgresql+asyncpg://clouddeploy_app:clouddeploy1234@localhost:5432/clouddeploy_test
+              run: uv run alembic check-migrations
+
+            - name: Run tests
+              env:
+                DATABASE_URL: postgresql+asyncpg://clouddeploy_app:clouddeploy1234@localhost:5432/clouddeploy_test
+              run: uv run pytest
+            
+              
