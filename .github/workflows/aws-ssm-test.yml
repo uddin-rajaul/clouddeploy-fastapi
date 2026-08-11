@@ -1,4 +1,4 @@
-name: AWS OIDC Debug
+name: AWS SSM Test
 
 on:
   workflow_dispatch:
@@ -8,19 +8,38 @@ permissions:
   contents: read
 
 jobs:
-  debug:
-    name: Debug OIDC claims
+  ssm-test:
+    name: Test AWS SSM access
     runs-on: ubuntu-latest
     environment: Production
 
     steps:
-      - name: Get OIDC token
-        shell: bash
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: arn:aws:iam::116527261682:role/clouddeploy-github-deploy-role
+          aws-region: ap-south-1
+
+      - name: Verify AWS identity
+        run: aws sts get-caller-identity
+
+      - name: Send harmless SSM command
         run: |
-          RESPONSE=$(curl -sSf \
-            -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
-            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=sts.amazonaws.com")
+          COMMAND_ID=$(aws ssm send-command \
+            --instance-ids i-051a3b2b68488e441 \
+            --document-name AWS-RunShellScript \
+            --parameters 'commands=["whoami","hostname"]' \
+            --query 'Command.CommandId' \
+            --output text)
 
-          TOKEN=$(echo "$RESPONSE" | jq -r '.value')
+          echo "SSM command: $COMMAND_ID"
 
-          echo "$TOKEN" | cut -d '.' -f2 | base64 -d 2>/dev/null | jq .
+          aws ssm wait command-executed \
+            --command-id "$COMMAND_ID" \
+            --instance-id i-051a3b2b68488e441
+
+          aws ssm get-command-invocation \
+            --command-id "$COMMAND_ID" \
+            --instance-id i-051a3b2b68488e441 \
+            --query 'StandardOutputContent' \
+            --output text
