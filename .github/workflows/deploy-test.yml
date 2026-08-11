@@ -1,0 +1,31 @@
+name: Deployment SSH Test
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ssh-test:
+    name: Test EC2 SSH access
+    runs-on: ubuntu-latest
+    environment: Production
+
+    steps:
+      - name: Test SSH connection
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+          EC2_HOST: ${{ vars.EC2_HOST }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/clouddeploy_github_actions
+          chmod 600 ~/.ssh/clouddeploy_github_actions
+
+          ssh-keyscan -H "$EC2_HOST" >> ~/.ssh/known_hosts
+
+          ssh \
+            -i ~/.ssh/clouddeploy_github_actions \
+            -o IdentitiesOnly=yes \
+            ec2-user@"$EC2_HOST" \
+            'whoami && hostname'
