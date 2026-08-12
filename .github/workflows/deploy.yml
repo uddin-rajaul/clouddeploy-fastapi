@@ -1,0 +1,82 @@
+name: Deploy
+
+on:
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    environment: Production
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: arn:aws:iam::116527261682:role/clouddeploy-github-deploy-role
+          aws-region: ap-south-1
+
+      - name: Deploy via SSM
+        env:
+          INSTANCE_ID: i-051a3b2b68488e441
+          DEPLOY_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+
+          echo "Deploying commit: $DEPLOY_SHA"
+
+          COMMAND_ID=$(aws ssm send-command \
+            --instance-ids "$INSTANCE_ID" \
+            --document-name AWS-RunShellScript \
+            --parameters "commands=[
+              \"set -e\",
+              \"cd /opt/clouddeploy-fastapi\",
+              \"sudo -u ec2-user git fetch origin main\",
+              \"sudo -u ec2-user git checkout --detach $DEPLOY_SHA\",
+              \"sudo -u ec2-user uv sync --locked\",
+              \"sudo -u ec2-user uv run alembic upgrade head\",
+              \"sudo systemctl restart clouddeploy\",
+              \"sleep 5\",
+              \"sudo systemctl is-active --quiet clouddeploy\",
+              \"curl --fail --silent --show-error http://127.0.0.1:8000/\"
+            ]" \
+            --query 'Command.CommandId' \
+            --output text)
+
+          echo "SSM command: $COMMAND_ID"
+
+          aws ssm wait command-executed \
+            --command-id "$COMMAND_ID" \
+            --instance-id "$INSTANCE_ID"
+
+          STATUS=$(aws ssm get-command-invocation \
+            --command-id "$COMMAND_ID" \
+            --instance-id "$INSTANCE_ID" \
+            --query 'Status' \
+            --output text)
+
+          echo "Deployment status: $STATUS"
+
+          aws ssm get-command-invocation \
+            --command-id "$COMMAND_ID" \
+            --instance-id "$INSTANCE_ID" \
+            --query 'StandardOutputContent' \
+            --output text
+
+          aws ssm get-command-invocation \
+            --command-id "$COMMAND_ID" \
+            --instance-id "$INSTANCE_ID" \
+            --query 'StandardErrorContent' \
+            --output text
+
+          if [ "$STATUS" != "Success" ]; then
+            echo "Deployment failed."
+            exit 1
+          fi
