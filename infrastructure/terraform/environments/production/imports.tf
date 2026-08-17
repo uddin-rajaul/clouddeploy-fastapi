@@ -17,3 +17,8 @@ import {
   to = module.networking.aws_subnet.private_1b
   id = "subnet-01ab585c607e15ef9"
 }
+
+import {
+  to = module.networking.aws_internet_gateway.this
+  id = "igw-0acdbe0c93ba6897c"
+}

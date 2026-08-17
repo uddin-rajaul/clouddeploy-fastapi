@@ -38,3 +38,11 @@ resource "aws_subnet" "private_1b" {
     Name = var.private_1b_name
   }
 }
+
+resource "aws_internet_gateway" "this" {
+  vpc_id = aws_vpc.this.id
+
+  tags = {
+    Name = var.internet_gateway_name
+  }
+}

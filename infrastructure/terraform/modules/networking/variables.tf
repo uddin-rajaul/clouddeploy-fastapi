@@ -67,3 +67,8 @@ variable "private_1b_name" {
   description = "Name tag for the private subnet in ap-south-1b"
   type        = string
 }
+
+variable "internet_gateway_name" {
+  description = "Name tag for the internet gateway"
+  type        = string
+}

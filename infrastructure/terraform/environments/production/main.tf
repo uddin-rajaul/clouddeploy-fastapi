@@ -18,4 +18,5 @@ module "networking" {
   private_1b_cidr_block                 = "10.0.3.0/24"
   private_1b_availability_zone          = "ap-south-1b"
   private_1b_name                       = "clouddeploy-private-subnet-1b"
+  internet_gateway_name                 = "clouddeploy-igw"
 }
