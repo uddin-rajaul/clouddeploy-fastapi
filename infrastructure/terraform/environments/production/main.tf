@@ -19,4 +19,5 @@ module "networking" {
   private_1b_availability_zone          = "ap-south-1b"
   private_1b_name                       = "clouddeploy-private-subnet-1b"
   internet_gateway_name                 = "clouddeploy-igw"
+  public_route_table_name               = "clouddeploy-public-rt"
 }

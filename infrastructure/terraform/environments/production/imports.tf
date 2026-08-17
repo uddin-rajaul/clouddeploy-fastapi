@@ -22,3 +22,14 @@ import {
   to = module.networking.aws_internet_gateway.this
   id = "igw-0acdbe0c93ba6897c"
 }
+
+import {
+  to = module.networking.aws_route_table.public
+  id = "rtb-00e607db790e0e86f"
+}
+
+import {
+  to = module.networking.aws_route.public_internet
+  id = "rtb-00e607db790e0e86f_0.0.0.0/0"
+}
+
