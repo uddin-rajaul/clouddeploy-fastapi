@@ -38,3 +38,32 @@ variable "public_subnet_name" {
   type = string
 }
 
+variable "private_1a_cidr_block" {
+  description = "IPv4 CIDR block for the private subnet in ap-south-1a"
+  type  = string
+}
+
+variable "private_1a_availability_zone" {
+    description = "Availability Zone for the Private Subnet in ap-south-1a"
+    type = string   
+}
+
+variable "private_1a_name" {
+  description = "Name tag for the private subnet in ap-south-1a"
+  type = string
+}
+
+variable "private_1b_cidr_block" {
+  description = "IPv4 CIDR block for the private subnet in ap-south-1b"
+  type        = string
+}
+
+variable "private_1b_availability_zone" {
+  description = "Availability Zone for the private subnet in ap-south-1b"
+  type        = string
+}
+
+variable "private_1b_name" {
+  description = "Name tag for the private subnet in ap-south-1b"
+  type        = string
+}

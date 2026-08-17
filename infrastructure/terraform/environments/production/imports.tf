@@ -7,3 +7,13 @@ import {
   to = module.networking.aws_subnet.public_1a
   id = "subnet-0e397ff96e6c91d7e"
 }
+
+import {
+  to = module.networking.aws_subnet.private_1a
+  id = "subnet-01c8fc49db8db789b"
+}
+
+import {
+  to = module.networking.aws_subnet.private_1b
+  id = "subnet-01ab585c607e15ef9"
+}

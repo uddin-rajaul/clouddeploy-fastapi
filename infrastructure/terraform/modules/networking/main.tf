@@ -19,3 +19,22 @@ resource "aws_subnet" "public_1a" {
     Name = var.public_subnet_name
   }
 }
+
+resource "aws_subnet" "private_1a" {
+  vpc_id = aws_vpc.this.id
+  cidr_block = var.private_1a_cidr_block
+  availability_zone = var.private_1a_availability_zone
+  tags = {
+    Name = var.private_1a_name
+  }
+}
+
+resource "aws_subnet" "private_1b" {
+  vpc_id            = aws_vpc.this.id
+  cidr_block        = var.private_1b_cidr_block
+  availability_zone = var.private_1b_availability_zone
+
+  tags = {
+    Name = var.private_1b_name
+  }
+}
