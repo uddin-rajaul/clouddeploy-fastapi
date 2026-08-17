@@ -97,3 +97,8 @@ dmypy.json
 # Coverage
 *.cover
 .hypothesis/
+
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
