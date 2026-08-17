@@ -33,3 +33,7 @@ import {
   id = "rtb-00e607db790e0e86f_0.0.0.0/0"
 }
 
+import {
+  to = module.networking.aws_route_table_association.public_1a
+  id = "subnet-0e397ff96e6c91d7e/rtb-00e607db790e0e86f"
+}
