@@ -21,3 +21,9 @@ module "networking" {
   internet_gateway_name                 = "clouddeploy-igw"
   public_route_table_name               = "clouddeploy-public-rt"
 }
+
+module "security" {
+  source                = "../../modules/security"
+  vpc_id                = module.networking.vpc_id
+  web_security_group_id = "sg-0f587876d8e314354"
+}
