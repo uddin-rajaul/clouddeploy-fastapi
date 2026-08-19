@@ -87,3 +87,23 @@ import {
   to = module.compute.aws_instance.web
   id = "i-051a3b2b68488e441"
 }
+
+import {
+  to = module.monitoring.aws_cloudwatch_log_group.nginx["/clouddeploy/nginx/access"]
+  id = "/clouddeploy/nginx/access"
+}
+
+import {
+  to = module.monitoring.aws_cloudwatch_log_group.nginx["/clouddeploy/nginx/error"]
+  id = "/clouddeploy/nginx/error"
+}
+
+import {
+  to = module.monitoring.aws_cloudwatch_metric_alarm.high_cpu
+  id = "clouddeploy-high-cpu"
+}
+
+import {
+  to = module.monitoring.aws_cloudwatch_metric_alarm.instance_status_check
+  id = "clouddeploy-instance-status-check"
+}

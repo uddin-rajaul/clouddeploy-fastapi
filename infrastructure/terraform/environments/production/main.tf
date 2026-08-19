@@ -52,3 +52,14 @@ module "compute" {
   key_name             = "clouddeploy-key"
   iam_instance_profile = module.iam.instance_profile_name
 }
+
+module "monitoring" {
+  source = "../../modules/monitoring"
+
+  instance_id = module.compute.instance_id
+
+  log_group_names = [
+    "/clouddeploy/nginx/access",
+    "/clouddeploy/nginx/error",
+  ]
+}
