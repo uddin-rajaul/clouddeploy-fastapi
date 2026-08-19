@@ -52,3 +52,13 @@ import {
   to = module.security.aws_vpc_security_group_egress_rule.rds_all
   id = "sgr-02b98554691ca44fe"
 }
+
+import {
+  to = module.database.aws_db_subnet_group.this
+  id = "clouddeploy-db-subnet-group"
+}
+
+import {
+  to = module.database.aws_db_instance.this
+  id = "clouddeploy-postgres"
+}

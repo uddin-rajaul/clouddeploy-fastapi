@@ -27,3 +27,12 @@ module "security" {
   vpc_id                = module.networking.vpc_id
   web_security_group_id = "sg-0f587876d8e314354"
 }
+
+module "database" {
+  source = "../../modules/database"
+  subnet_ids = [
+    module.networking.private_subnet_1a_id,
+    module.networking.private_subnet_1b_id
+  ]
+  rds_security_group_id = module.security.rds_security_group_id
+}
