@@ -36,3 +36,7 @@ module "database" {
   ]
   rds_security_group_id = module.security.rds_security_group_id
 }
+
+module "iam" {
+  source = "../../modules/iam"
+}

@@ -62,3 +62,23 @@ import {
   to = module.database.aws_db_instance.this
   id = "clouddeploy-postgres"
 }
+
+import {
+  to = module.iam.aws_iam_role.ec2
+  id = "clouddeploy-ec2-role"
+}
+
+import {
+  to = module.iam.aws_iam_instance_profile.ec2
+  id = "clouddeploy-ec2-role"
+}
+
+import {
+  to = module.iam.aws_iam_role_policy_attachment.cloudwatch
+  id = "clouddeploy-ec2-role/arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
+}
+
+import {
+  to = module.iam.aws_iam_role_policy_attachment.ssm
+  id = "clouddeploy-ec2-role/arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
