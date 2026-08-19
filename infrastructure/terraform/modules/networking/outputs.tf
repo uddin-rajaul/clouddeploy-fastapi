@@ -17,3 +17,8 @@ output "private_subnet_1b_id" {
   description = "ID of the private subnet in ap-south-1b"
   value       = aws_subnet.private_1b.id
 }
+
+output "public_1a_id" {
+  description = "ID of the public subnet in ap-south-1a"
+  value       = aws_subnet.public_1a.id
+}

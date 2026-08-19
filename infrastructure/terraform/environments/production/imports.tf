@@ -82,3 +82,8 @@ import {
   to = module.iam.aws_iam_role_policy_attachment.ssm
   id = "clouddeploy-ec2-role/arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
+
+import {
+  to = module.compute.aws_instance.web
+  id = "i-051a3b2b68488e441"
+}

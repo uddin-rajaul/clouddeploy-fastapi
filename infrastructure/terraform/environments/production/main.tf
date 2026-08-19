@@ -40,3 +40,15 @@ module "database" {
 module "iam" {
   source = "../../modules/iam"
 }
+
+module "compute" {
+  source = "../../modules/compute"
+
+  ami_id               = "ami-035827357e3c7e810"
+  instance_type        = "t3.micro"
+  subnet_id            = module.networking.public_1a_id
+  private_ip           = "10.0.1.82"
+  security_group_ids   = ["sg-0f587876d8e314354"]
+  key_name             = "clouddeploy-key"
+  iam_instance_profile = module.iam.instance_profile_name
+}
